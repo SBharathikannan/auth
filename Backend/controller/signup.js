@@ -14,10 +14,10 @@ const signup = async (req, res) => {
     };
     const user = await userModel.create(newUser);
     console.log("User created:", user); // Log user data
-    res.send(user);
+    return res.send(user);
   } catch (e) {
     console.error("Signup error:", e.message);
-    res.status(500).send(e.message);
+    return res.status(500).send(e.message);
   }
 };
 module.exports = { signup };

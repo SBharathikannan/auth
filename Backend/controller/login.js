@@ -10,20 +10,20 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await userModel.findOne({ email });
-    if (!email) {
-      //throw new Error("User not found");
-      res.send("User not found");
+    if (!user) {
+      return res.status(404).send("User not found");
     }
-    const ispasswordValid = bcrypt.compare(password, user.password);
 
-    if (!ispasswordValid) {
-      res.send("Incorrect Password");
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).send("Incorrect Password");
     }
 
     const token = generateToken(user);
-    res.send({ user, token });
+    return res.status(200).json({ user, token });
   } catch (e) {
-    res.send("Invalid Credentials");
+    console.error("Error during login:", e);
+    return res.status(500).send("Invalid Credentials");
   }
 };
 
@@ -33,14 +33,15 @@ const refreshToken = async (req, res) => {
     const decodedToken = verifyToken(oldToken);
     const existingUser = await userModel.findById(decodedToken.id);
 
-    const newToken = generateRefreshToken(existingUser);
-    console.log(newToken);
-    res.json({ newToken: newToken });
     if (!existingUser) {
-      throw new Error("User not Found");
+      return res.status(404).send("User not found");
     }
+
+    const newToken = generateRefreshToken(existingUser);
+    return res.status(200).json({ newToken });
   } catch (e) {
-    res.send("Invalid Token");
+    console.error("Error during token refresh:", e);
+    return res.status(401).send("Invalid Token");
   }
 };
 
